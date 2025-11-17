@@ -1,0 +1,58 @@
+
+services:
+  # ----------------------------------------------------------------
+  # 1. СЕРВИС БАЗЫ ДАННЫХ (POSTGRESQL)
+  # ----------------------------------------------------------------
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    ports:
+      - "5432:5432"
+#    restart: always # Всегда перезапускать контейнер, если он неожиданно остановился
+
+    # Переменные окружения для настройки PostgreSQL
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Admin
+
+    # Монтирование тома для сохранения данных БД
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # ----------------------------------------------------------------
+  # 2. СЕРВИС ПРИЛОЖЕНИЯ (SPRING BOOT)
+  # ----------------------------------------------------------------
+  app:
+    # Инструкция для сборки образа из локального Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: cloud_api_app
+
+    # Маппинг портов: 8888 хоста -> 8080 контейнера
+    ports:
+       - "8888:8888"
+
+    # Переменные окружения для Spring Boot, переопределяющие настройки application.properties
+    environment:
+      # Активируем профиль docker, чтобы настройки брались из application-docker.properties
+      SPRING_PROFILES_ACTIVE: docker
+
+    # Зависимость: приложение ждет, пока БД запустится
+    depends_on:
+      - postgres
+
+    # Монтирование тома для сохранения загруженных файлов
+    volumes:
+      - cloud_storage_data:/app/cloud_storage_root
+
+# ----------------------------------------------------------------
+# 3. ОПРЕДЕЛЕНИЕ ТОМОВ (VOLUMES)
+# ----------------------------------------------------------------
+volumes:
+  # Том для сохранения данных PostgreSQL
+  postgres_data:
+  # Том для сохранения загруженных пользователями файлов
+  cloud_storage_data:

@@ -1,0 +1,88 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 1
+      author: Roman
+      changes:
+        # Создание таблицы users
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(255)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: password_hash
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: current_auth_token
+                  type: VARCHAR(255)
+                  constraints:
+                    unique: true
+                    nullable: true
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+  - changeSet:
+      id: 2
+      author: Roman
+      changes:
+        # Создание таблицы files
+        - createTable:
+            tableName: files
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: filename
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: size
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: owner_username
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: storage_path
+                  type: VARCHAR(512)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: mime_type
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: true
+
+        # Добавление уникального индекса для owner_username и filename
+        - addUniqueConstraint:
+            columnNames: owner_username, filename
+            constraintName: uk_file_owner_name
+            tableName: files
