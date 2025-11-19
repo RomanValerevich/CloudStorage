@@ -9,9 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.netology.cloudstorage.exception.BadRequestException;
 import ru.netology.cloudstorage.exception.InternalServerErrorException;
-import ru.netology.cloudstorage.model.dto.FileListItem;
-import ru.netology.cloudstorage.model.entity.FileMetadata;
+import ru.netology.cloudstorage.model.FileMetadata;
 import ru.netology.cloudstorage.repository.FileMetadataRepository;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -21,8 +21,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class FileServiceImpl implements FileService {
     private final FileMetadataRepository metadataRepository;
@@ -43,11 +43,13 @@ public class FileServiceImpl implements FileService {
     @Transactional
     @Override
     public void uploadFile(String username, String filename, MultipartFile file) {
+        log.info("Uploading file '{}' for '{}'", filename, username);
         if (file.isEmpty() || filename == null || filename.isEmpty()) {
             throw new BadRequestException("Error input data: File or filename is missing.");
         }
 
         if (metadataRepository.findByOwnerUsernameAndFilename(username, filename).isPresent()) {
+            log.warn("File '{}' already exists for user '{}'", filename, username);
             throw new BadRequestException("File with this name already exists.");
         }
 
@@ -64,6 +66,7 @@ public class FileServiceImpl implements FileService {
             metadata.setMimeType(file.getContentType());
 
             metadataRepository.save(metadata);
+            log.info("File '{}' stored for '{}' as '{}', size {}", filename, username, storedFilename, file.getSize());
 
         } catch (IOException ex) {
             throw new InternalServerErrorException("Error uploading file: Failed to store file.", ex);
@@ -77,6 +80,7 @@ public class FileServiceImpl implements FileService {
                 .orElseThrow(() -> new BadRequestException("Error input data: File not found or access denied."));
 
         Path filePath = Paths.get(metadata.getStoragePath());
+        log.info("Deleting file '{}' for '{}'", filename, username);
         try {
             Files.delete(filePath);
         } catch (IOException ex) {
@@ -84,6 +88,7 @@ public class FileServiceImpl implements FileService {
         }
 
         metadataRepository.delete(metadata);
+        log.info("File '{}' deleted for '{}'", filename, username);
     }
 
     @Override
@@ -96,6 +101,7 @@ public class FileServiceImpl implements FileService {
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {
+                log.info("Downloading file '{}' for '{}'", filename, username);
                 return resource;
             } else {
                 throw new InternalServerErrorException("Error downloading file: File not readable on server.");
@@ -105,15 +111,13 @@ public class FileServiceImpl implements FileService {
         }
     }
     @Override
-    public List<FileListItem> getFilesList(String username, int limit) {
+    public List<FileMetadata> getFilesList(String username, int limit) {
         if (limit <= 0) {
             throw new BadRequestException("Error input data: limit must be > 0.");
         }
 
-        return metadataRepository.findByOwnerUsername(username, PageRequest.of(0, limit))
-                .stream()
-                .map(m -> new FileListItem(m.getFilename(), m.getSize()))
-                .collect(Collectors.toList());
+        log.info("Fetching files list for '{}' with limit {}", username, limit);
+        return metadataRepository.findByOwnerUsername(username, PageRequest.of(0, limit));
     }
 
     @Transactional
@@ -130,6 +134,7 @@ public class FileServiceImpl implements FileService {
             throw new BadRequestException("File with this name already exists.");
         }
 
+        log.info("Renaming file '{}' -> '{}' for '{}'", filename, newName, username);
         metadata.setFilename(newName);
         metadataRepository.save(metadata);
     }

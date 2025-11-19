@@ -6,11 +6,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.netology.cloudstorage.exception.BadRequestException;
 import ru.netology.cloudstorage.exception.UnauthorizedException;
-import ru.netology.cloudstorage.model.entity.User;
+import ru.netology.cloudstorage.model.User;
 import ru.netology.cloudstorage.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -26,28 +28,33 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public String login(String login, String rawPassword) {
+        log.info("Login attempt for '{}'", login);
         // Сначала попробуем найти по электронной почте, затем по имени пользователя для обратной совместимости
         User user = userRepository.findByEmail(login)
                 .orElseGet(() -> userRepository.findByUsername(login)
                         .orElseThrow(() -> new BadRequestException("Пользователь с таким email/логином не найден")));
 
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+            log.warn("Login failed for '{}': bad credentials", login);
             throw new BadRequestException("Неверный пароль");
         }
 
         String newToken = UUID.randomUUID().toString();
         user.setCurrentAuthToken(newToken);
         userRepository.save(user);
+        log.info("Login successful for '{}'", login);
         return newToken;
     }
 
     @Transactional
     @Override
     public void logout(String authToken) {
+        log.info("Logout request for token: {}", authToken != null && authToken.length() > 8 ? authToken.substring(0, 8) + "..." : "<empty>");
         userRepository.findByCurrentAuthToken(authToken)
                 .ifPresent(user -> {
                     user.setCurrentAuthToken(null);
                     userRepository.save(user);
+                    log.info("User '{}' logged out", user.getUsername());
                 });
     }
 
@@ -64,12 +71,14 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new UnauthorizedException("Неверный или устаревший токен авторизации"));
 
         // Возвращается адрес электронной почты вместо имени пользователя для аутентификации
+        log.debug("Token validated for user '{}'", user.getUsername());
         return user.getEmail() != null ? user.getEmail() : user.getUsername();
     }
     
     @Transactional
     @Override
     public void register(String username, String password, String email) {
+        log.info("Registering new user '{}', email '{}'", username, email);
         if (userRepository.existsByUsername(username)) {
             throw new BadRequestException("Username is already taken");
         }
@@ -84,6 +93,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordHash(passwordEncoder.encode(password));
         
         userRepository.save(user);
+        log.info("User '{}' registered successfully", username);
     }
 
 }

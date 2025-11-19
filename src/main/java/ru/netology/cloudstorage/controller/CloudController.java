@@ -7,17 +7,20 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import ru.netology.cloudstorage.model.dto.FileListItem;
-import ru.netology.cloudstorage.model.dto.LoginRequest;
-import ru.netology.cloudstorage.model.dto.LoginResponse;
-import ru.netology.cloudstorage.model.dto.RenameRequest;
+import ru.netology.cloudstorage.dto.FileListItem;
+import ru.netology.cloudstorage.dto.LoginRequest;
+import ru.netology.cloudstorage.dto.LoginResponse;
+import ru.netology.cloudstorage.dto.RenameRequest;
 import ru.netology.cloudstorage.dto.RegisterRequest;
 import ru.netology.cloudstorage.service.AuthService;
 import ru.netology.cloudstorage.service.FileService;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
+@Slf4j
 @RestController
 @RequestMapping
 public class CloudController {
@@ -31,18 +34,21 @@ public class CloudController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+        log.info("Login request for {}", request.getLogin());
         String token = authService.login(request.getLogin(), request.getPassword());
         return ResponseEntity.ok(new LoginResponse(token));
     }
     
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        log.info("Register request for {}", request.getUsername());
         authService.register(request.getUsername(), request.getPassword(), request.getEmail());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader("auth-token") String authToken) {
+        log.info("Logout request received");
         authService.logout(authToken);
         return ResponseEntity.ok().build();
     }
@@ -55,6 +61,7 @@ public class CloudController {
             @RequestPart("file") MultipartFile file
     ) {
         String username = authService.validateTokenAndGetUsername(authToken);
+        log.info("Upload file '{}' by '{}'", filename, username);
         fileService.uploadFile(username, filename, file);
         return ResponseEntity.ok().build();
     }
@@ -65,6 +72,7 @@ public class CloudController {
             @RequestParam String filename
     ) {
         String username = authService.validateTokenAndGetUsername(authToken);
+        log.info("Delete file '{}' by '{}'", filename, username);
         fileService.deleteFile(username, filename);
         return ResponseEntity.ok().build();
     }
@@ -75,6 +83,7 @@ public class CloudController {
             @RequestParam String filename
     ) {
         String username = authService.validateTokenAndGetUsername(authToken);
+        log.info("Download file '{}' by '{}'", filename, username);
         Resource fileResource = fileService.downloadFile(username, filename);
 
         return ResponseEntity.ok()
@@ -89,7 +98,11 @@ public class CloudController {
             @RequestParam("limit") int limit
     ) {
         String username = authService.validateTokenAndGetUsername(authToken);
-        List<FileListItem> files = fileService.getFilesList(username, limit);
+        log.info("Get files list with limit {} by '{}'", limit, username);
+        List<FileListItem> files = fileService.getFilesList(username, limit)
+                .stream()
+                .map(m -> new FileListItem(m.getFilename(), m.getSize()))
+                .collect(Collectors.toList());
         return ResponseEntity.ok(files);
     }
 
@@ -101,6 +114,7 @@ public class CloudController {
             @RequestBody RenameRequest request
     ) {
         String username = authService.validateTokenAndGetUsername(authToken);
+        log.info("Rename file '{}' -> '{}' by '{}'", filename, request.getName(), username);
         fileService.renameFile(username, filename, request.getName());
         return ResponseEntity.ok().build();
     }
