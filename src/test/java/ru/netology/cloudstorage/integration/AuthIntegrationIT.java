@@ -13,9 +13,9 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import ru.netology.cloudstorage.model.dto.LoginRequest;
-import ru.netology.cloudstorage.model.dto.LoginResponse;
-import ru.netology.cloudstorage.model.entity.User;
+import ru.netology.cloudstorage.dto.LoginRequest;
+import ru.netology.cloudstorage.dto.LoginResponse;
+import ru.netology.cloudstorage.model.User;
 import ru.netology.cloudstorage.repository.UserRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,7 +26,7 @@ public class AuthIntegrationIT {
     private static final String TEST_LOGIN = "testlogin";
     private static final String RAW_PASSWORD = "testpassword";
 
-    // ... (PostgreSQLContainer и DynamicPropertySource)
+    // (PostgreSQLContainer и DynamicPropertySource)
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
             .withDatabaseName("integration_db")
@@ -74,8 +74,7 @@ public class AuthIntegrationIT {
 //        ResponseEntity<LoginResponse> response = restTemplate.postForEntity("/cloud/login", entity, LoginResponse.class);
 
         ResponseEntity<String> debugResp = restTemplate.postForEntity("/login", entity, String.class);
-        System.out.println("DEBUG STATUS: " + debugResp.getStatusCode());
-        System.out.println("DEBUG BODY: " + debugResp.getBody());
+
 
         if (debugResp.getStatusCode() == HttpStatus.OK) {
             ResponseEntity<LoginResponse> response = restTemplate.postForEntity("/login", entity, LoginResponse.class);
@@ -85,7 +84,7 @@ public class AuthIntegrationIT {
             assertNotNull(response.getBody());
             assertNotNull(response.getBody().getAuthToken(), "Токен должен быть возвращен");
             //
-        }else {
+        } else {
             fail("Login failed: " + debugResp.getStatusCode() + " body=" + debugResp.getBody());
         }
 

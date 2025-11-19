@@ -5,7 +5,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import ru.netology.cloudstorage.model.entity.User;
+import ru.netology.cloudstorage.model.User;
 import ru.netology.cloudstorage.repository.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;

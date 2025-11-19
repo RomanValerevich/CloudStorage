@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import ru.netology.cloudstorage.model.dto.ErrorResponse;
+import ru.netology.cloudstorage.dto.ErrorResponse;
 import ru.netology.cloudstorage.util.ErrorCodes;
 
 @ControllerAdvice

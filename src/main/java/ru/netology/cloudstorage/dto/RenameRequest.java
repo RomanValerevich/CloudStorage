@@ -1,4 +1,4 @@
-package ru.netology.cloudstorage.model.dto;
+package ru.netology.cloudstorage.dto;
 
 import lombok.Data;
 

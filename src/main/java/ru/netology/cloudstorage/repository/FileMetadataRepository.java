@@ -2,7 +2,7 @@ package ru.netology.cloudstorage.repository;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.netology.cloudstorage.model.entity.FileMetadata;
+import ru.netology.cloudstorage.model.FileMetadata;
 
 
 import java.util.List;

@@ -3,7 +3,7 @@ package ru.netology.cloudstorage.model;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import ru.netology.cloudstorage.model.dto.LoginResponse;
+import ru.netology.cloudstorage.dto.LoginResponse;
 
 import static org.junit.jupiter.api.Assertions.*;
 

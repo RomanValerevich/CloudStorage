@@ -1,7 +1,7 @@
 package ru.netology.cloudstorage.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.netology.cloudstorage.model.entity.User;
+import ru.netology.cloudstorage.model.User;
 
 import java.util.Optional;
 

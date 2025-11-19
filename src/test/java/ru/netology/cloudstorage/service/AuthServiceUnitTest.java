@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.netology.cloudstorage.exception.BadRequestException;
-import ru.netology.cloudstorage.model.entity.User;
+import ru.netology.cloudstorage.model.User;
 import ru.netology.cloudstorage.repository.UserRepository;
 
 import java.util.Optional;

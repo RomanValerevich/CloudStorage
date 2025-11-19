@@ -1,4 +1,4 @@
-package ru.netology.cloudstorage.model.entity;
+package ru.netology.cloudstorage.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
